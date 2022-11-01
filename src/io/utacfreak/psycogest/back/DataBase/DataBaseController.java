@@ -28,17 +28,14 @@ public class DataBaseController extends Observable {
     private DataBaseController(){
         connect();
     }
-
     public static void setObserver(){
         db.addObserver(ViewController.getNewsObserver());
     }
-
     public static DataBaseController getDataBase(){
         if(db != null)
             return db;
         return db = new DataBaseController();
     }
-
     private static void connect() {
         try {
             conn = DriverManager.getConnection(url);
@@ -57,6 +54,7 @@ public class DataBaseController extends Observable {
     public static List<Paziente> loadDB(Boolean notify) {
         Logger.Log(DataBaseController.class, "START - loadDB - notify: " + notify);
         List<Paziente> lst = new ArrayList();
+        db.setChanged();
 
         if(conn == null){
             connect();
@@ -66,34 +64,11 @@ public class DataBaseController extends Observable {
             return lst;
         }
 
-        db.setChanged();
-        /*
         try {
-            Scanner reader = new Scanner(new File(prop_name));
-            while (reader.hasNextLine()) {
-                Paziente p = parsePaziente(reader.nextLine());
-                lst.add(p);
-            }
-            reader.close();
-            if(notify) {
-                Logger.Log(DataBaseController.class, "OK - DB caricato correttamente");
-                db.notifyObservers("OK - DB caricato correttamente");
-            }
-        } catch (Exception e) {
-            Logger.Log(DataBaseController.class, "ERR - DB non caricato -> " + e.toString());
-            Logger.Log(DataBaseController.class, "ERR - DB non caricato -> " + e.getMessage());
-            if(notify)
-                db.notifyObservers("ERRORE - DB non caricato");
-        }
-         */
-
-        String sql = "SELECT * FROM Pazienti";
-
-        try {
+            String sql = "SELECT * FROM Pazienti";
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
 
-            // loop through the result set
             while (rs.next()) {
                 Paziente p = parsePaziente(rs);
                 lst.add(p);
@@ -110,39 +85,10 @@ public class DataBaseController extends Observable {
                 db.notifyObservers("ERRORE - DB non caricato");
         }
 
-        //Collections.sort(lst);
+        Collections.sort(lst);
 
         Logger.Log(DataBaseController.class, "END - loadDB - notify: " + notify);
         return lst;
-    }
-
-    private static Paziente parsePaziente(String paziente){
-        Paziente p = new Paziente();
-        try {
-            String[] split = paziente.split(";");
-            p.setId(Integer.parseInt(split[0]));
-            p.setNome(split[1]);
-            p.setCognome(split[2]);
-            p.setCodiceFiscale(split[3]);
-            p.setTelefono(split[4]);
-            p.setIsVisibile(split[5].equals("1"));
-            p.setEta(Integer.parseInt(split[6]));
-            p.setIsDSA(split[7].equals("1"));
-            p.setisNotSendCFtoAE(split[8].equals("1"));
-            Address a = new Address();
-            a.setIndirizzo(split[9]);
-            a.setCivico(split[10]);
-            a.setCap(split[11]);
-            a.setCitta(split[12]);
-            a.setProvincia(split[13]);
-            p.setAddress(a);
-            p.setMail(split[14]);
-        } catch(ArrayIndexOutOfBoundsException e){
-            Logger.Log(DataBaseController.class, "ERR - Parsing errato -> " + e.toString());
-            Logger.Log(DataBaseController.class, "ERR - Parsing errato -> " + e.getMessage());
-            p = new Paziente();
-        }
-        return p;
     }
 
     private static Paziente parsePaziente(ResultSet rs){
@@ -179,58 +125,63 @@ public class DataBaseController extends Observable {
         return p;
     }
 
-    private static String toCSV(Paziente p){
-        if(!p.isPazienteValid()){
-            throw new IllegalArgumentException("Paziente non inserito correttamente");
-        }
-
-        StringBuilder s =  new StringBuilder();
-        s.append(p.getId()+";");
-        s.append(p.getNome()+";");
-        s.append(p.getCognome()+";");
-        s.append(p.getCodiceFiscale()+";");
-        s.append(p.getTelefono()+";");
-        s.append((p.isVisible() ? '1':'0')+";");
-        s.append(p.getEta()+ ";");
-        s.append((p.isDSA() ? '1':'0')+";");
-        s.append((p.isNotSendCFtoAE() ? '1':'0')+";");
-        s.append(p.getAddress().getIndirizzo()+";");
-        s.append(p.getAddress().getCivico()+";");
-        s.append(p.getAddress().getCap()+";");
-        s.append(p.getAddress().getCitta()+";");
-        s.append(p.getAddress().getProvincia()+";");
-        s.append(p.getMail() + "\n");
-        return s.toString();
-    }
-
     public static void editPaziente(Paziente p){
         Logger.Log(DataBaseController.class, "START - editPaziente");
         Logger.Log(DataBaseController.class, p.toString());
         db.setChanged();
+
+        if(conn == null){
+            connect();
+            Logger.Log(DataBaseController.class, "ERR - Insert failed for connection");
+            db.notifyObservers("ERRORE - Inserimento non effettuato");
+            return;
+        }
         try {
-            File f = new File(prop_name_temp);
-            FileWriter writer = new FileWriter(f);
-            boolean res = false;
-            for (Paziente temp : Controller.getController().getPazienti()) {
-                if(temp.getId() < p.getId()){
-                    writer.append(toCSV(temp));
-                    continue;
-                }
-                if(temp.getId() > p.getId()) {
-                    writer.append(toCSV(temp));
-                    continue;
-                }
-                if(temp.getId() == p.getId()){
-                    res = true;
-                    writer.append(toCSV(p));
-                    continue;
-                }
-            }
-            Logger.Log(DataBaseController.class,"Trovato il paziente da modificare? " + res);
-            writer.close();
-            Path from = Paths.get(prop_name_temp);
-            Path to = Paths.get(prop_name);
-            Files.move(from, to, StandardCopyOption.REPLACE_EXISTING);
+            String sql = "SELECT * FROM Pazienti WHERE id=" + p.getId();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+
+            sql = "UPDATE Indirizzi SET " +
+                    "Citta = ?, " +
+                    "Provincia = ?, " +
+                    "Via = ?, " +
+                    "Civico = ?," +
+                    "Cap = ? " +
+                    "WHERE id = " + rs.getInt("Indirizzo");
+
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, p.getAddress().getCitta());
+            pstmt.setString(2, p.getAddress().getProvincia());
+            pstmt.setString(3, p.getAddress().getIndirizzo());
+            pstmt.setString(4, p.getAddress().getCivico());
+            pstmt.setString(5, p.getAddress().getCap());
+            pstmt.executeUpdate();
+
+            sql = "UPDATE Pazienti SET " +
+                    "Nome = ?," +
+                    "Cognome = ?," +
+                    "CodFisc = ?," +
+                    "Telefono = ?," +
+                    "IsVisibile = ?," +
+                    "Eta = ?," +
+                    "DSA = ?," +
+                    "NoSendCF = ?," +
+                    "Indirizzo = ?," +
+                    "Mail = ?" +
+                    "WHERE id = " + p.getId();
+
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, p.getNome());
+            pstmt.setString(2, p.getCognome());
+            pstmt.setString(3, p.getCodiceFiscale());
+            pstmt.setString(4, p.getTelefono());
+            pstmt.setInt(5, p.isVisible() ? 1:0);
+            pstmt.setInt(6, p.getEta());
+            pstmt.setInt(7, p.isDSA() ? 1:0);
+            pstmt.setInt(8, p.isNotSendCFtoAE() ? 1:0);
+            pstmt.setInt(9, rs.getInt("Indirizzo"));
+            pstmt.setString(10, p.getMail());
+            pstmt.executeUpdate();
 
             db.notifyObservers("OK - Modifica");
             Controller.getController().loadPazienti(false);

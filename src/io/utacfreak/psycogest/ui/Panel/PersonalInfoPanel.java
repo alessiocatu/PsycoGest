@@ -42,6 +42,8 @@ public class PersonalInfoPanel extends JPanel {
         Container funcBtns = new Container();
         funcBtns.setLayout(new GridLayout(3, 0));
 
+        funcBtns.add(GenericComponent.H2("Invio fattura tramite Mail", SwingConstants.CENTER));
+
         funcBtns.add(GenericComponent.CheckBox(
                 IconFontSwing.buildIcon(FontAwesome.ENVELOPE, 40, GraphicConst.TEXT_DARK),
                 p.getSendMail(),
@@ -59,6 +61,8 @@ public class PersonalInfoPanel extends JPanel {
                     }
                 }));
 
+        funcBtns.add(new Container());
+        /*
         funcBtns.add(GenericComponent.CheckBox(
                 IconFontSwing.buildIcon(FontAwesome.CLOUD_UPLOAD,40, GraphicConst.TEXT_DARK),
                 p.getSendAE(),
@@ -92,6 +96,7 @@ public class PersonalInfoPanel extends JPanel {
                         Controller.getController().editPsicologa(p);
                     }
                 }));
+         */
         infoRow.add(funcBtns);
 
         this.add(infoRow);

@@ -11,6 +11,7 @@
       <element id="extracted-dir" path="$PROJECT_DIR$/../Documents/mail-1.4.7.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/../Documents/jfreechart-1.5.3.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/../Documents/swingx-0.9.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Documents/sqlite-jdbc-3.36.0.3.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>
