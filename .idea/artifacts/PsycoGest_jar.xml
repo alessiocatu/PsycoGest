@@ -1,0 +1,16 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="PsycoGest:jar">
+    <output-path>$PROJECT_DIR$/../Desktop/Psycogest</output-path>
+    <root id="archive" name="PsycoGest.jar">
+      <element id="module-output" name="PsycoGest" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Documents/Spire/lib/Spire.Doc.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Documents/activation-1.1.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Documents/jiconfont-font_awesome-4.7.0.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Documents/jiconfont-1.0.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Documents/jiconfont-swing-1.0.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Documents/mail-1.4.7.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Documents/jfreechart-1.5.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../Documents/swingx-0.9.1.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
